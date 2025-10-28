@@ -1,0 +1,169 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+#document backup files
+*.bkp
+/embedded/E54ServoCharMplabX/firmware/e54ServoChar.X/dist/
+/embedded/E54ServoCharMplabX/firmware/e54ServoChar.X/build/
+/embedded/MetroM4BalanceControl/firmware/balance.X/build/
+/embedded/MetroM4BalanceControl/firmware/balance.X/dist/
+/embedded/MetroM4BalanceControl/firmware/balance.X/.generated_files/
+
+#lock files for documents
+*.docx#
+
+# For PCBs designed using KiCad: https://www.kicad.org/
+# Format documentation: https://kicad.org/help/file-formats/
+
+# Temporary files
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups
+*.kicad_prl
+*.sch-bak
+*~
+_autosave-*
+*.tmp
+*-save.pro
+*-save.kicad_pcb
+fp-info-cache
+
+# Netlist files (exported from Eeschema)
+*.net
+
+# Autorouter files (exported from Pcbnew)
+*.dsn
+*.ses
+
+# Exported BOM files
+*.xml
+*.csv
+
+# ---------------------------------------------------------------------
+# Zephyr and West build artifacts
+# ---------------------------------------------------------------------
+build/
+build-*/
+*.log
+*.pyc
+*.pyo
+*.pdb
+__pycache__/
+.cache/
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+cmake_install.cmake
+compile_commands.json
+zephyr/
+modules/
+twister-out/
+
+# ---------------------------------------------------------------------
+# Generated files
+# ---------------------------------------------------------------------
+*.bin
+*.hex
+*.elf
+*.map
+*.lst
+*.d
+*.o
+
+# ---------------------------------------------------------------------
+# IDE / Editor specific
+# ---------------------------------------------------------------------
+# VSCode
+.vscode/
+.vscode-test/
+.settings/
+*.code-workspace
+
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+
+# macOS / Windows filesystem junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------
+# Python virtual environments
+# ---------------------------------------------------------------------
+venv/
+.env/
+.venv/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build_py/
+
+# ---------------------------------------------------------------------
+# Zephyr project workspace caches
+# ---------------------------------------------------------------------
+.west/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# ---------------------------------------------------------------------
+# Optional: if you store SDK or toolchain locally (recommended to exclude)
+# ---------------------------------------------------------------------
+zephyr-sdk-*/
+toolchain/
