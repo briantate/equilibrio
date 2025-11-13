@@ -2,15 +2,17 @@
     aliases {
         led1 = &ext_led;
         sw0 = &user_button;
+        pwm0 = &tc6;
     };
 
     leds {
         compatible = "gpio-leds";
         ext_led: led_1 {
-            gpios = <&portb 02 GPIO_ACTIVE_HIGH>;
+            gpios = <&portb 2 GPIO_ACTIVE_HIGH>;
             label = "EXT_LED";
         };
     };
+
     buttons {
         compatible = "gpio-keys";
         user_button: button_0 {
@@ -19,4 +21,25 @@
         };
     };
 };
+
+&pinctrl {
+    pwm_tc6_pins: pwm_tc6_pins {
+        group0 {
+            pinmux = <ATMEL_SAM_PINMUX('B', 2, E)>;  /* PB02, TC6/WO[0] */
+        };
+        group1 {
+            pinmux = <ATMEL_SAM_PINMUX('B', 3, E)>;  /* PB03, TC6/WO[1] */
+        };
+    };
+};
+
+&tc6 {
+    status = "okay";
+    pinctrl-0 = <&pwm_tc6_pins>;
+    pinctrl-names = "default";
+};
+
+
+
+// add adc
 
