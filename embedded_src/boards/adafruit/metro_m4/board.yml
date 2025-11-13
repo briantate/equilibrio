@@ -1,0 +1,6 @@
+board:
+  name: metro_m4
+  full_name: Adafruit Metro M4 Board
+  vendor: Adafruit
+  socs:
+    - name: samd51j19a

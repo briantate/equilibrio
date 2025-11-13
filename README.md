@@ -25,4 +25,9 @@ In the future, the following technologies may be added for learning:
 
 # Firmware Architecture:
 
+# Zephyr commands needed:
+* Build:
+    > west build -b metro_m4 --pristine -- -DBOARD_ROOT=.
+    - the -DBOARD_ROOT=. tells west to look for the custom board I created in the current directory
+
 

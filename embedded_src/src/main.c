@@ -1,7 +1,14 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
-#include <zephyr/drivers/pwm.h>
 #include <zephyr/sys/printk.h>
+#include <zephyr/drivers/pwm.h>
+
+#define STEP PWM_USEC(100)
+
+enum direction {
+	DOWN,
+	UP,
+};
 
 //Servos
 static const struct pwm_dt_spec servo_left = PWM_DT_SPEC_GET(DT_NODELABEL(servo_left));
@@ -10,13 +17,6 @@ static const uint32_t min_pulse = DT_PROP(DT_NODELABEL(servo_left), min_pulse);
 static const uint32_t max_pulse = DT_PROP(DT_NODELABEL(servo_left), max_pulse);
 
 //ADC's
-
-#define STEP PWM_USEC(100)
-
-enum direction {
-	DOWN,
-	UP,
-};
 
 int main(void)
 {
