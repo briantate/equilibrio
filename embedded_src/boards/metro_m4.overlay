@@ -1,14 +1,14 @@
 / {
     servo_left: servo_left {
         compatible = "pwm-servo";
-        pwms = <&tcc0 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+        pwms = <&tcc0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         min-pulse = <PWM_USEC(700)>;
         max-pulse = <PWM_USEC(2500)>;
     };
 
     servo_right: servo_right {
         compatible = "pwm-servo";
-        pwms = <&tcc0 3 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+        pwms = <&tcc0 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         min-pulse = <PWM_USEC(700)>;
         max-pulse = <PWM_USEC(2500)>;
     };

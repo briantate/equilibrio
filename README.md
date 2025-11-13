@@ -25,9 +25,23 @@ In the future, the following technologies may be added for learning:
 
 # Firmware Architecture:
 
+# Hardware needed:
+* Electronics:
+    * Adafruit Metro M4 board (later to be a custom board)
+    * Custom shield with headers for servo motors, touchscreen sensor, and UART header for console I/O
+    * CMSIS-DAP programmer - I'm using Atmel-ICE
+    * 2 servo motors
+    * 1 resistive touchscreen - from Amazon
+* Custom balance table hardware
+    * 3d-printed table hardware
+    * Wooden base board to mount the table hardware
+
 # Zephyr commands needed:
-* Build:
+* Install the zephyr ecosystem for your OS following https://docs.zephyrproject.org/latest/develop/getting_started/index.html
+* Build: need to be in the embedded_src directory
     > west build -b metro_m4 --pristine -- -DBOARD_ROOT=.
-    - the -DBOARD_ROOT=. tells west to look for the custom board I created in the current directory
+    - the -DBOARD_ROOT=. tells west to look for the custom board I created in the current directory (which has the boards subdirectory)
+* Flash:
+    > west flash
 
 
