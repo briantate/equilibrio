@@ -1,6 +1,8 @@
 # equilibrio
 A ball balancing project
 
+![](docs/balance.mov)
+
 # Goals:
 This is a learning project focused on several learning goals:
 * State Space control theory
@@ -30,8 +32,10 @@ In the future, the following technologies may be added for learning:
     * Adafruit Metro M4 board (later to be a custom board)
     * Custom shield with headers for servo motors, touchscreen sensor, and UART header for console I/O
     * CMSIS-DAP programmer - I'm using Atmel-ICE
-    * 2 servo motors
-    * 1 resistive touchscreen - from Amazon
+    * 2 MG995 180 degree metal gear servo motors
+    * 2 Aluminum 25T Servo Horn Steering Arms
+    * 2 RC Aluminum Linkages for Servo
+    * 1 VSDISPLAY 8.4" 4 wire resistive touchscreen
 * Custom balance table hardware
     * 3d-printed table hardware
     * Wooden base board to mount the table hardware
