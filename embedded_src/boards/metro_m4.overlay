@@ -1,4 +1,11 @@
 / {
+
+	aliases{
+		adc-touchscreen = &adc0;
+		adc-touchscreen-left = &adc0_ch4;
+		adc-touchscreen-right = &adc0_ch6;
+	};
+
     servo_left: servo_left {
         compatible = "pwm-servo";
         pwms = <&tcc0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
@@ -27,7 +34,8 @@
 				 <PB14G_TCC0_WO2>;     // D5
 		};
     };
-    touch_sensor_pins: touch_sensor_pins{
+
+    touch_sensor_analog: touch_sensor_analog{
         group1 {
 			pinmux = <PA6B_ADC0_AIN6>, // A2
 				 <PA4B_ADC0_AIN4>;     // A3
@@ -60,7 +68,26 @@
 	pinctrl-names = "default";
 };
 
-//ToDo: Which channels will I use?
 &adc0 {
 	status = "okay";
+	pinctrl-0 =  <&touch_sensor_analog>;
+    pinctrl-names = "default";
+
+	adc0_ch4: channel@4{
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_VDD_1";
+		zephyr,vref-mv = <3300>; 
+		zephyr,acquistion-time = "ADC_ACQ_TIME_DEFAULT";
+		zephyr,resolution = <12>;
+	};
+	
+	adc0_ch6: channel@6{
+		reg = <6>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_VDD_1";
+		zephyr,vref-mv = <3300>; 
+		zephyr,acquistion-time = "ADC_ACQ_TIME_DEFAULT";
+		zephyr,resolution = <12>;
+	};
 };
