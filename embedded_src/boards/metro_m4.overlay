@@ -1,10 +1,30 @@
 / {
-
 	aliases{
-		adc-touchscreen = &adc0;
-		adc-touchscreen-left = &adc0_ch4;
-		adc-touchscreen-right = &adc0_ch6;
+		// adc-touch-sensor = &adc0;
+		// adc-touch-sensor-x = &adc0_ch4;
+		// adc-touch-sensor-y = &adc0_ch6;
 	};
+
+    touch_sensor_pins: touch_sensor_pins_node {
+		compatible = "gpio-keys";     // REQUIRED so the node is valid
+        status = "okay";
+		x_m_pin: x-m-pin{
+        	gpios = <&porta 4 GPIO_ACTIVE_HIGH>;
+			label = "X M Pin";
+		};
+		x_p_pin: x-p-pin{
+        	gpios = <&porta 20 GPIO_ACTIVE_HIGH>;
+			label = "X P Pin";
+		};
+		y_m_pin: y-m-pin{
+        	gpios = <&porta 21 GPIO_ACTIVE_HIGH>;
+			label = "Y M Pin";
+		};
+		y_p_pin: y-p-pin{
+        	gpios = <&porta 6 GPIO_ACTIVE_HIGH>;
+			label = "Y PPin";
+		};
+    };
 
     servo_left: servo_left {
         compatible = "pwm-servo";
@@ -35,12 +55,12 @@
 		};
     };
 
-    touch_sensor_analog: touch_sensor_analog{
-        group1 {
-			pinmux = <PA6B_ADC0_AIN6>, // A2
-				 <PA4B_ADC0_AIN4>;     // A3
-		};
-    };
+    // touch_sensor_analog: touch_sensor_analog{
+    //     group1 {
+	// 		pinmux = <PA6B_ADC0_AIN6>, // A2
+	// 			 <PA4B_ADC0_AIN4>;     // A3
+	// 	};
+    // };
 };
 
 
@@ -68,30 +88,30 @@
 	pinctrl-names = "default";
 };
 
-&adc0 {
-	status = "okay";
-	pinctrl-0 =  <&touch_sensor_analog>;
-    pinctrl-names = "default";
-
-	/* Required so channel@N works with reg=<N>; */
-    #address-cells = <1>;
-    #size-cells = <0>;
-
-	adc0_ch4: channel@4{
-		reg = <4>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_VDD_1";
-		zephyr,vref-mv = <3300>; 
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
-	
-	adc0_ch6: channel@6{
-		reg = <6>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_VDD_1";
-		zephyr,vref-mv = <3300>; 
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
-};
+// &adc0 {
+// 	status = "okay";
+// 	pinctrl-0 =  <&touch_sensor_analog>;
+//     pinctrl-names = "default";
+// 
+// 	/* Required so channel@N works with reg=<N>; */
+//     #address-cells = <1>;
+//     #size-cells = <0>;
+// 
+// 	adc0_ch4: channel@4{
+// 		reg = <4>;
+// 		zephyr,gain = "ADC_GAIN_1";
+// 		zephyr,reference = "ADC_REF_VDD_1";
+// 		zephyr,vref-mv = <3300>; 
+// 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+// 		zephyr,resolution = <12>;
+// 	};
+// 	
+// 	adc0_ch6: channel@6{
+// 		reg = <6>;
+// 		zephyr,gain = "ADC_GAIN_1";
+// 		zephyr,reference = "ADC_REF_VDD_1";
+// 		zephyr,vref-mv = <3300>; 
+// 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+// 		zephyr,resolution = <12>;
+// 	};
+// };
