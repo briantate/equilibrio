@@ -3,7 +3,6 @@
 #include <zephyr/drivers/gpio.h>
 
 //ADC's
-// #define TOUCHSCREEN_CENTER (1615)
 // #define TOUCH_SENSOR_X DT_ALIAS(adc_touch_sensor_x)
 // #define TOUCH_SENSOR_Y DT_ALIAS(adc_touch_sensor_y)
 // static const struct device *touch_sensor = DEVICE_DT_GET(DT_ALIAS(adc_touch_sensor));
@@ -19,7 +18,7 @@ static const struct gpio_dt_spec y_p_pin = GPIO_DT_SPEC_GET(DT_NODELABEL(y_p_pin
 
 int touch_sensor_init(void){
     int err;
-
+    // check if gpio are ready //ToDo: is this needed?
 	if (!gpio_is_ready_dt(&x_m_pin)) {
 		printk("x_m_pin port is not ready.\n");
 		return 0;
@@ -37,8 +36,7 @@ int touch_sensor_init(void){
 		return 0;
 	}
 
-    printk("Initializing pin with inactive level.\n");
-
+    //configure pins
 	err = gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT_INACTIVE);
 	if (err != 0) {
 		printk("Configuring GPIO pin failed: %d\n", err);
@@ -102,37 +100,30 @@ int touch_sensor_init(void){
 }
 
 uint16_t touch_sensor_read_x(void){
+    uint16_t value = 0;
+    gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT);
+    gpio_pin_configure_dt(&x_p_pin, GPIO_OUTPUT);
+    gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
+    gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
+    
+    gpio_pin_set_dt(&x_p_pin, 0);
+    gpio_pin_set_dt(&x_m_pin, 1);
 
-    // int err = gpio_pin_toggle_dt(&x_m_pin);
-    // if (err != 0) {
-    //     printk("Setting x_m_pin level failed: %d\n", err);
-    // }
-    // err = gpio_pin_toggle_dt(&x_p_pin);
-    // if (err != 0) {
-    //     printk("Setting x_p_pin level failed: %d\n", err);
-    // }
-    // err = gpio_pin_toggle_dt(&y_m_pin);
-    // if (err != 0) {
-    //     printk("Setting y_m_pin level failed: %d\n", err);
-    // }
-    // err = gpio_pin_toggle_dt(&y_p_pin);
-    // if (err != 0) {
-    //     printk("Setting y_p_pin level failed: %d\n", err);
-    // }
-    // return 0;
-
-
-  uint16_t value = 0;
-  gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT);
-  gpio_pin_configure_dt(&x_p_pin, GPIO_OUTPUT);
-  gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
-  gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
-  
-  gpio_pin_set_dt(&x_p_pin, 0);
-  gpio_pin_set_dt(&x_m_pin, 1);
-
-  k_sleep(K_MSEC(1));
+    k_sleep(K_MSEC(1));
 //   value = analogRead(YP_PIN);
+// vlaue = adc_read(touch_sensor, &seq_x);
+		// if(ret<0){
+		// 	printk("Could not read touch sensor x: %d\r\n", ret);
+		// }
+		// val_mv_x = buf_x * vref_mv_x /(1 << seq_x.resolution);
+		// printk("X RAW: %u, mV: %u\r\n", buf_x, val_mv_x);
+		
+		// ret = adc_read(touch_sensor, &seq_y);
+		// if(ret<0){
+		// 	printk("Could not read touch sensor y: %d\r\n", ret);
+		// }
+		// val_mv_y = buf_y * vref_mv_y /(1 << seq_y.resolution);
+		// printk("Y RAW: %u, mV: %u\r\n", buf_y, val_mv_y);
 
     gpio_pin_set_dt(&x_m_pin, 0);
     gpio_pin_configure_dt(&x_m_pin, GPIO_INPUT);

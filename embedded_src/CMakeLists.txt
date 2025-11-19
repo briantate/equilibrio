@@ -4,4 +4,5 @@ project(balancing_ball_zephyr)
 target_sources(app PRIVATE 
                 src/main.c
                 src/resistive_touch_sensor.c
+                src/pid.c
                 )

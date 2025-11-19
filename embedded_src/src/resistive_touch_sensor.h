@@ -10,6 +10,8 @@ extern "C" {
 
 #endif
 
+#define TOUCHSCREEN_CENTER (1615)
+
 int touch_sensor_init(void);
 uint16_t touch_sensor_read_x(void);
 uint16_t touch_sensor_read_y(void);
