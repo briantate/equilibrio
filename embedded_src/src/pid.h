@@ -15,6 +15,7 @@ typedef struct{
     float kd; //3100
     float error_last;
     float PID_i;
+    int sampling_period;
 } pid_t;
 
 

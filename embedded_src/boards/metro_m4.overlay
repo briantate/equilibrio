@@ -6,24 +6,27 @@
 	};
 
     touch_sensor_pins: touch_sensor_pins_node {
-		compatible = "gpio-keys";     // REQUIRED so the node is valid
+		// compatible = "gpio-keys";     // REQUIRED so the node is valid
+		compatible = "zephyr,gpio-array";
         status = "okay";
-		x_m_pin: x-m-pin{
-        	gpios = <&porta 4 GPIO_ACTIVE_HIGH>;
-			label = "X M Pin";
-		};
-		x_p_pin: x-p-pin{
-        	gpios = <&porta 20 GPIO_ACTIVE_HIGH>;
-			label = "X P Pin";
-		};
-		y_m_pin: y-m-pin{
-        	gpios = <&porta 21 GPIO_ACTIVE_HIGH>;
-			label = "Y M Pin";
-		};
-		y_p_pin: y-p-pin{
-        	gpios = <&porta 6 GPIO_ACTIVE_HIGH>;
-			label = "Y P Pin";
-		};
+		pinctrl-0 = <&touch_sensor_digital>;
+    	pinctrl-names = "default";
+		// x_m_pin: x-m-pin{
+        // 	gpios = <&porta 18 GPIO_ACTIVE_HIGH>;
+		// 	label = "X M Pin";
+		// };
+		// x_p_pin: x-p-pin{
+        // 	gpios = <&porta 20 GPIO_ACTIVE_HIGH>;
+		// 	label = "X P Pin";
+		// };
+		// y_m_pin: y-m-pin{
+        // 	gpios = <&porta 21 GPIO_ACTIVE_HIGH>;
+		// 	label = "Y M Pin";
+		// };
+		// y_p_pin: y-p-pin{
+        // 	gpios = <&porta 19 GPIO_ACTIVE_HIGH>;
+		// 	label = "Y P Pin";
+		// };
     };
 
     servo_left: servo_left {
@@ -59,6 +62,15 @@
         group1 {
 			pinmux = <PA6B_ADC0_AIN6>, // A2
 				 <PA4B_ADC0_AIN4>;     // A3
+		};
+    };
+    touch_sensor_digital: touch_sensor_digital{
+        group1 {
+			pinmux = <PA18_GPIO>,
+				 <PA19_GPIO>,
+				 <PA20_GPIO>,
+				 <PA21_GPIO>;
+				 drive-strength = <1>;   /* High drive strength */
 		};
     };
 };

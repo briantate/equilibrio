@@ -7,6 +7,7 @@
 #include "resistive_touch_sensor.h"
 
 #define STEP PWM_USEC(100)
+#define SAMPLE_RATE (20) //ms
 
 //Servos
 #define SERVO_MID_US (PWM_USEC(1439))
@@ -21,31 +22,31 @@ static const struct pwm_dt_spec servo_right = PWM_DT_SPEC_GET(DT_NODELABEL(servo
 static const uint32_t min_pulse = DT_PROP(DT_NODELABEL(servo_left), min_pulse);
 static const uint32_t max_pulse = DT_PROP(DT_NODELABEL(servo_left), max_pulse);
 
-uint16_t sensorX = 0;
-uint16_t sensorY = 0;
+uint16_t sensorX_val = 0;
+uint16_t sensorY_val = 0;
 bool last_ball_state = true;
 
 // PID
 pid_t pid_x = {
-	.kp = 0,
-	.ki = 0,
-	.kd = 0,
+	.kp = 4,
+	.ki = 0.2,
+	.kd = 3100,
 	.error_last = 0,
-	.PID_i = 0
+	.PID_i = 0,
+	.sampling_period = SAMPLE_RATE
 };
 
 pid_t pid_y = {
-	.kp = 0,
-	.ki = 0,
-	.kd = 0,
+	.kp = 4,
+	.ki = 0.2,
+	.kd = 3100,
 	.error_last = 0,
-	.PID_i = 0
+	.PID_i = 0,
+	.sampling_period = SAMPLE_RATE
 };
 
 // private prototypes:
 static bool isBallDetected(uint16_t x, uint16_t y);
-static void SetServoXOnTime(uint32_t onTimeUs);
-static void SetServoYOnTime(uint32_t onTimeUs);
 static long map(long x, long in_min, long in_max, long out_min, long out_max);
 
 //public functions
@@ -54,13 +55,75 @@ int main(void)
 {
 	printk("Amazing Balancing Ball!!!\r\n");
 
-	int ret;
+	int err;
 
-	touch_sensor_init();
+	// check if gpio are ready //ToDo: is this needed?
+	printk("check if gpio are ready\r\n");
+	if (!gpio_is_ready_dt(&x_m_pin)) {
+		printk("x_m_pin port is not ready.\n");
+		return 0;
+	}
+	if (!gpio_is_ready_dt(&x_p_pin)) {
+		printk("x_p_pin port is not ready.\n");
+		return 0;
+	}
+	if (!gpio_is_ready_dt(&y_m_pin)) {
+		printk("y_m_pin port is not ready.\n");
+		return 0;
+	}
+	if (!gpio_is_ready_dt(&y_p_pin)) {
+		printk("y_p_pin port is not ready.\n");
+		return 0;
+	}
+
+    //configure pins
+	printk("configure gpio\r\n");
+	err = gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT_INACTIVE);
+	if (err != 0) {
+		printk("Configuring GPIO pin failed: %d\n", err);
+		return 0;
+	}
+	err = gpio_pin_configure_dt(&x_p_pin, GPIO_OUTPUT_INACTIVE);
+	if (err != 0) {
+		printk("Configuring GPIO pin failed: %d\n", err);
+		return 0;
+	}
+	err = gpio_pin_configure_dt(&y_m_pin, GPIO_OUTPUT_INACTIVE);
+	if (err != 0) {
+		printk("Configuring GPIO pin failed: %d\n", err);
+		return 0;
+	}
+	err = gpio_pin_configure_dt(&y_p_pin, GPIO_OUTPUT_INACTIVE);
+	if (err != 0) {
+		printk("Configuring GPIO pin failed: %d\n", err);
+		return 0;
+	}
+
+	//configure adc
+	printk("configure adc\r\n");
+	if(!device_is_ready(touch_sensor_adc)){
+		printk("Touch Sensor is not ready\r\n");
+		return 0;
+	}
+
+	err = adc_channel_setup(touch_sensor_adc, &touch_sensor_adc_x);
+	if(err<0){
+		printk("Could not set up touch sensor x\r\n");
+		return 0;
+	}
+
+	err = adc_channel_setup(touch_sensor_adc, &touch_sensor_adc_y);
+	if(err<0){
+		printk("Could not set up touch sensor y\r\n");
+		return 0;
+	}
+
 
     uint32_t pulse_width_left = SERVO_MID_US;
     uint32_t pulse_width_right = SERVO_MID_US;
 
+	//
+	printk("check if pwms are ready\r\n");
 	if (!pwm_is_ready_dt(&servo_left)) {
 		printk("Error: PWM device %s is not ready\n",
 		       servo_left.dev->name);
@@ -72,12 +135,20 @@ int main(void)
 		return 0;
 	}
 
+	//level the table
+	pwm_set_pulse_dt(&servo_left, pulse_width_left);
+	pwm_set_pulse_dt(&servo_right, pulse_width_right);
+
     while (1) {
 
-		sensorX = touch_sensor_read_x();
-		sensorY = touch_sensor_read_y();
+		sensorX_val = touch_sensor_read_x();
+		sensorY_val = touch_sensor_read_y();
+		// sensorX_val = touch_sensor_read(&sensor_x);
+		// sensorY_val = touch_sensor_read(&sensor_y);
+		printk("x: %u ", sensorX_val);
+		printk("y: %u\r\n", sensorY_val);
 		
-		bool is_ball_detected = isBallDetected(sensorX,sensorY);
+		bool is_ball_detected = isBallDetected(sensorX_val,sensorY_val);
 		if(!is_ball_detected){
 			if(last_ball_state)
 				printk("no ball detected\r\n");
@@ -89,32 +160,28 @@ int main(void)
 		}
 		else{ 
 			if(!last_ball_state)
-				printk("ball detected");
+				printk("ball detected\r\n");
 
-			pid_x_output = pid_control(&pid_x, TOUCHSCREEN_CENTER, sensorX);
+			pid_x_output = pid_control(&pid_x, TOUCHSCREEN_CENTER, sensorX_val);
 			pulse_width_left = map(pid_x_output, -16000, 16000, min_pulse, max_pulse);
-			pid_y_output = pid_control(&pid_y, sensorY, TOUCHSCREEN_CENTER);
+			pid_y_output = pid_control(&pid_y, sensorY_val, TOUCHSCREEN_CENTER);
 			pulse_width_right = map(pid_y_output, -16000, 16000, min_pulse, max_pulse);
-			
-	// //            printf("%f,%f\r\n", errorLastX, errorLastY);
-	// 			printf("%u,%u\r\n", sensorX, sensorY);
-	// //            printf("%lu,%lu\r\n", pid_x_output, pid_y_output);
 		}
 		last_ball_state = is_ball_detected;
 
-        ret = pwm_set_pulse_dt(&servo_left, pulse_width_left);
-        if (ret < 0) {
-			printk("Error %d: failed to set pulse width left\n", ret);
+        err = pwm_set_pulse_dt(&servo_left, pulse_width_left);
+        if (err < 0) {
+			printk("Error %d: failed to set pulse width left\n", err);
 			return 0;
 		}
 
-        ret = pwm_set_pulse_dt(&servo_right, pulse_width_right);
-		if (ret < 0) {
-			printk("Error %d: failed to set pulse width right\n", ret);
+        err = pwm_set_pulse_dt(&servo_right, pulse_width_right);
+		if (err < 0) {
+			printk("Error %d: failed to set pulse width right\n", err);
 			return 0;
 		}
 
-        k_sleep(K_MSEC(20)); //run the PID every 20ms
+        k_sleep(K_MSEC(SAMPLE_RATE));
     }
 }
 
@@ -124,18 +191,6 @@ static bool isBallDetected(uint16_t x, uint16_t y)
 {
     return((x > 300) && (y > 300));
 }
-
-static void SetServoXOnTime(uint32_t onTimeUs)
-{
-    // TCC0_PWM24bitDutySet(TCC0_CHANNEL0, onTimeUs);
-}
-
-
-static void SetServoYOnTime(uint32_t onTimeUs)
-{
-    // TCC0_PWM24bitDutySet(TCC0_CHANNEL2, onTimeUs);
-}
-
 
 // helper function to map a value from one range to another
 static long map(long x, long in_min, long in_max, long out_min, long out_max) {

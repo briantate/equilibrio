@@ -2,12 +2,56 @@
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
 
+// uint16_t touch_sensor_read(touch_sensor_t *sensor){
+// 	uint16_t value;
+// 	//Set x pins to outputs
+// 	//Set y pins to inputs
+// 	//drive xm low
+// 	//drive xp high
+// 	sensor->high_z_pin_1();
+// 	sensor->high_z_pin_2();
+// 	sensor->drive_high_pin();
+// 	sensor->drive_low_pin();
+
+// 	//wait for settling period
+// 	sensor->wait_to_settle();
+
+// 	//read ADC
+// 	value = sensor->adc_read();
+
+// 	// set xp low
+// 	// restore all pins to high z
+// 	return value;
+// }
+
 //ADC's
-// #define TOUCH_SENSOR_X DT_ALIAS(adc_touch_sensor_x)
-// #define TOUCH_SENSOR_Y DT_ALIAS(adc_touch_sensor_y)
-// static const struct device *touch_sensor = DEVICE_DT_GET(DT_ALIAS(adc_touch_sensor));
-// static const struct adc_channel_cfg touch_sensor_x = ADC_CHANNEL_CFG_DT(TOUCH_SENSOR_X);
-// static const struct adc_channel_cfg touch_sensor_y = ADC_CHANNEL_CFG_DT(TOUCH_SENSOR_Y);
+#define TOUCH_SENSOR_X DT_ALIAS(adc_touch_sensor_x)
+#define TOUCH_SENSOR_Y DT_ALIAS(adc_touch_sensor_y)
+static const struct device *touch_sensor_adc = DEVICE_DT_GET(DT_ALIAS(adc_touch_sensor));
+static const struct adc_channel_cfg touch_sensor_adc_x = ADC_CHANNEL_CFG_DT(TOUCH_SENSOR_X);
+static const struct adc_channel_cfg touch_sensor_adc_y = ADC_CHANNEL_CFG_DT(TOUCH_SENSOR_Y);
+
+uint16_t buf_x;
+uint16_t val_mv_x;
+uint32_t vref_mv_x = DT_PROP(TOUCH_SENSOR_X, zephyr_vref_mv);
+
+uint16_t buf_y;
+uint16_t val_mv_y;
+uint32_t vref_mv_y = DT_PROP(TOUCH_SENSOR_Y, zephyr_vref_mv);
+
+struct adc_sequence seq_x = {
+	.channels = BIT(touch_sensor_adc_x.channel_id),
+	.buffer = &buf_x,
+	.buffer_size = sizeof(buf_x),
+	.resolution = DT_PROP(TOUCH_SENSOR_X, zephyr_resolution)
+};
+
+struct adc_sequence seq_y = {
+	.channels = BIT(touch_sensor_adc_y.channel_id),
+	.buffer = &buf_y,
+	.buffer_size = sizeof(buf_y),
+	.resolution = DT_PROP(TOUCH_SENSOR_Y, zephyr_resolution)
+};
 
 //GPIO's 
 static const struct gpio_dt_spec x_m_pin = GPIO_DT_SPEC_GET(DT_NODELABEL(x_m_pin), gpios);
@@ -18,7 +62,8 @@ static const struct gpio_dt_spec y_p_pin = GPIO_DT_SPEC_GET(DT_NODELABEL(y_p_pin
 
 int touch_sensor_init(void){
     int err;
-    // check if gpio are ready //ToDo: is this needed?
+    //check if gpio are ready //ToDo: is this needed?
+	printk("check if gpio are ready\r\n");
 	if (!gpio_is_ready_dt(&x_m_pin)) {
 		printk("x_m_pin port is not ready.\n");
 		return 0;
@@ -37,6 +82,7 @@ int touch_sensor_init(void){
 	}
 
     //configure pins
+	printk("configure gpio\r\n");
 	err = gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT_INACTIVE);
 	if (err != 0) {
 		printk("Configuring GPIO pin failed: %d\n", err);
@@ -58,97 +104,125 @@ int touch_sensor_init(void){
 		return 0;
 	}
 
-    // uint16_t buf_x;
-	// uint16_t val_mv_x;
-	// uint32_t vref_mv_x = DT_PROP(TOUCH_SENSOR_X, zephyr_vref_mv);
+	//configure adc
+	printk("configure adc\r\n");
+	if(!device_is_ready(touch_sensor_adc)){
+		printk("Touch Sensor is not ready\r\n");
+		return 0;
+	}
 
-	// uint16_t buf_y;
-	// uint16_t val_mv_y;
-	// uint32_t vref_mv_y = DT_PROP(TOUCH_SENSOR_Y, zephyr_vref_mv);
+	err = adc_channel_setup(touch_sensor_adc, &touch_sensor_adc_x);
+	if(err<0){
+		printk("Could not set up touch sensor x\r\n");
+		return 0;
+	}
 
-	// struct adc_sequence seq_x = {
-	// 	.channels = BIT(touch_sensor_x.channel_id),
-	// 	.buffer = &buf_x,
-	// 	.buffer_size = sizeof(buf_x),
-	// 	.resolution = DT_PROP(TOUCH_SENSOR_X, zephyr_resolution)
-	// };
+	err = adc_channel_setup(touch_sensor_adc, &touch_sensor_adc_y);
+	if(err<0){
+		printk("Could not set up touch sensor y\r\n");
+		return 0;
+	}
 
-	// struct adc_sequence seq_y = {
-	// 	.channels = BIT(touch_sensor_y.channel_id),
-	// 	.buffer = &buf_y,
-	// 	.buffer_size = sizeof(buf_y),
-	// 	.resolution = DT_PROP(TOUCH_SENSOR_Y, zephyr_resolution)
-	// };
-
-	// if(!device_is_ready(touch_sensor)){
-	// 	printk("Touch Sensor is not ready\r\n");
-	// 	return 0;
-	// }
-
-	// ret = adc_channel_setup(touch_sensor, &touch_sensor_x);
-	// if(ret<0){
-	// 	printk("Could not set up touch sensor x\r\n");
-	// 	return 0;
-	// }
-
-	// ret = adc_channel_setup(touch_sensor, &touch_sensor_y);
-	// if(ret<0){
-	// 	printk("Could not set up touch sensor y\r\n");
-	// 	return 0;
-	// }
     return 0;
 }
 
 uint16_t touch_sensor_read_x(void){
-    uint16_t value = 0;
-    gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT);
-    gpio_pin_configure_dt(&x_p_pin, GPIO_OUTPUT);
-    gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
-    gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
+
+    int err = 0;
+	err =  gpio_pin_configure_dt(&x_m_pin, GPIO_OUTPUT);
+    err += gpio_pin_configure_dt(&x_p_pin, GPIO_OUTPUT);
+    err += gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
+    err += gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
+
+	if(err != 0){
+		printk("error configuring GPIO before measurement\r\n");
+		return 0;
+	}
     
-    gpio_pin_set_dt(&x_p_pin, 0);
-    gpio_pin_set_dt(&x_m_pin, 1);
+	err = 0;
+    err =  gpio_pin_set_dt(&x_p_pin, 0);
+    err += gpio_pin_set_dt(&x_m_pin, 1);
+
+	if(err != 0){
+		printk("error setting GPIO before measurement\r\n");
+		return 0;
+	}
 
     k_sleep(K_MSEC(1));
-//   value = analogRead(YP_PIN);
-// vlaue = adc_read(touch_sensor, &seq_x);
-		// if(ret<0){
-		// 	printk("Could not read touch sensor x: %d\r\n", ret);
-		// }
-		// val_mv_x = buf_x * vref_mv_x /(1 << seq_x.resolution);
-		// printk("X RAW: %u, mV: %u\r\n", buf_x, val_mv_x);
-		
-		// ret = adc_read(touch_sensor, &seq_y);
-		// if(ret<0){
-		// 	printk("Could not read touch sensor y: %d\r\n", ret);
-		// }
-		// val_mv_y = buf_y * vref_mv_y /(1 << seq_y.resolution);
-		// printk("Y RAW: %u, mV: %u\r\n", buf_y, val_mv_y);
 
-    gpio_pin_set_dt(&x_m_pin, 0);
-    gpio_pin_configure_dt(&x_m_pin, GPIO_INPUT);
-    gpio_pin_configure_dt(&x_p_pin, GPIO_INPUT);
+	int ret = adc_read(touch_sensor_adc, &seq_x);
+	if(ret<0){
+		printk("Could not read touch sensor x: %d\r\n", ret);
+	}
+	val_mv_x = buf_x * vref_mv_x /(1 << seq_x.resolution);
+	// printk("X RAW: %u, mV: %u\r\n", buf_x, val_mv_x);
 
-  return(value);
+	err = 0;
+    err = gpio_pin_set_dt(&x_m_pin, 0);
+	if(err != 0){
+		printk("error setting GPIO after measurement\r\n");
+		return 0;
+	}
+
+	err = 0;
+    err =  gpio_pin_configure_dt(&x_m_pin, GPIO_INPUT);
+    err += gpio_pin_configure_dt(&x_p_pin, GPIO_INPUT);
+	if(err != 0){
+		printk("error configuring GPIO after measurement\r\n");
+		return 0;
+	}
+
+  return(val_mv_x);
     
 }
 
 uint16_t touch_sensor_read_y(void){
-    uint16_t value = 0;
-    gpio_pin_configure_dt(&x_m_pin, GPIO_INPUT);
-    gpio_pin_configure_dt(&x_p_pin, GPIO_INPUT);
-    gpio_pin_configure_dt(&y_m_pin, GPIO_OUTPUT);
-    gpio_pin_configure_dt(&y_p_pin, GPIO_OUTPUT);
+
+	int err = 0;
+    err =  gpio_pin_configure_dt(&x_m_pin, GPIO_INPUT);
+    err += gpio_pin_configure_dt(&x_p_pin, GPIO_INPUT);
+    err += gpio_pin_configure_dt(&y_m_pin, GPIO_OUTPUT);
+    err += gpio_pin_configure_dt(&y_p_pin, GPIO_OUTPUT);
+
+	if(err != 0){
+		printk("error configuring GPIO before measurement\r\n");
+		return 0;
+	}
     
-    gpio_pin_set_dt(&y_p_pin, 0);
-    gpio_pin_set_dt(&y_m_pin, 1);
+	err = 0;
+    err =  gpio_pin_set_dt(&y_p_pin, 0);
+    err += gpio_pin_set_dt(&y_m_pin, 1);
+
+	if(err != 0){
+		printk("error setting GPIO before measurement\r\n");
+		return 0;
+	}
 
     k_sleep(K_MSEC(1));
-//   value = analogRead(YP_PIN);
 
-    gpio_pin_set_dt(&y_m_pin, 0);
-    gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
-    gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
+	int ret = adc_read(touch_sensor_adc, &seq_y);
+	if(ret<0){
+		printk("Could not read touch sensor y: %d\r\n", ret);
+	}
+	val_mv_y = buf_y * vref_mv_y /(1 << seq_y.resolution);
+	// printk("Y RAW: %u, mV: %u\r\n", buf_y, val_mv_y);
 
-    return(value);
+	err = 0;
+    err = gpio_pin_set_dt(&y_m_pin, 0);
+
+	if(err != 0){
+		printk("error setting GPIO after measurement\r\n");
+		return 0;
+	}
+
+	err = 0;
+    err = gpio_pin_configure_dt(&y_m_pin, GPIO_INPUT);
+    err += gpio_pin_configure_dt(&y_p_pin, GPIO_INPUT);
+	if(err != 0){
+		printk("error configuring GPIO after measurement\r\n");
+		return 0;
+	}
+
+
+    return(val_mv_y);
 }
